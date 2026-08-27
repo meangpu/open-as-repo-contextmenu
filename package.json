@@ -1,0 +1,28 @@
+{
+  "name": "open-as-git-repo",
+  "displayName": "Open As Git Repository",
+  "description": "Right-click a folder in Explorer to open it as a Git repository",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "openAsGitRepo.run",
+        "title": "Open as Git Repository"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "openAsGitRepo.run",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@1"
+        }
+      ]
+    }
+  }
+}
