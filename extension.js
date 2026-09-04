@@ -52,7 +52,10 @@ function activate(context) {
       const api = gitExports.getAPI(1);
 
       try {
-        const repo = await api.openRepository(uri);
+        // The Git API skips repos the user previously closed. The built-in
+        // command passes openIfClosed=true so they can be reopened.
+        await vscode.commands.executeCommand("git.openRepository", uri.fsPath);
+        const repo = api.getRepository(uri);
         if (repo) {
           vscode.window.showInformationMessage(
             `Opened git repository: ${uri.fsPath}`,
