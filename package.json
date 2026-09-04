@@ -2,7 +2,7 @@
   "name": "open-as-git-repo",
   "displayName": "Open As Git Repository",
   "description": "Right-click a folder in Explorer to open it as a Git repository",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "meangpu",
   "icon": "icon/icon.png",
   "engines": {
