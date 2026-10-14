@@ -1,4 +1,59 @@
 const vscode = require("vscode");
+const path = require("path");
+
+// Turns a git remote URL (ssh or https) into { owner, repo }, or undefined if it is not GitHub.
+function parseGitHubRemote(remoteUrl) {
+  const match = remoteUrl.match(/github\.com[:/]([^/]+)\/(.+?)(\.git)?\/?$/);
+  return match ? { owner: match[1], repo: match[2] } : undefined;
+}
+
+async function openOnGitHub(uriFromArg) {
+  // Explorer passes the clicked item; the editor title/context and palette use the active editor.
+  const uri = uriFromArg || vscode.window.activeTextEditor?.document.uri;
+  if (!uri || uri.scheme !== "file") {
+    vscode.window.showErrorMessage("Select a file or open one in the editor first.");
+    return;
+  }
+
+  const gitExt = vscode.extensions.getExtension("vscode.git");
+  if (!gitExt) {
+    vscode.window.showErrorMessage("Built-in Git extension is not available.");
+    return;
+  }
+  const gitExports = gitExt.isActive ? gitExt.exports : await gitExt.activate();
+  const api = gitExports.getAPI(1);
+
+  const repo = api.getRepository(uri);
+  if (!repo) {
+    vscode.window.showWarningMessage(`No git repository found for: ${uri.fsPath}`);
+    return;
+  }
+
+  const origin = repo.state.remotes.find((r) => r.name === "origin") ?? repo.state.remotes[0];
+  const remote = origin && parseGitHubRemote(origin.fetchUrl ?? "");
+  if (!remote) {
+    vscode.window.showErrorMessage("The repository's remote is not a GitHub URL.");
+    return;
+  }
+
+  // Branch name when on a branch; commit hash when HEAD is detached.
+  const ref = repo.state.HEAD?.name ?? repo.state.HEAD?.commit;
+  if (!ref) {
+    vscode.window.showErrorMessage("Could not read the current branch or commit.");
+    return;
+  }
+
+  const stat = await vscode.workspace.fs.stat(uri);
+  const kind = stat.type === vscode.FileType.Directory ? "tree" : "blob";
+  const relPath = path
+    .relative(repo.rootUri.fsPath, uri.fsPath)
+    .split(path.sep)
+    .map(encodeURIComponent)
+    .join("/");
+
+  const url = `https://github.com/${remote.owner}/${remote.repo}/${kind}/${ref}/${relPath}`;
+  await vscode.env.openExternal(vscode.Uri.parse(url));
+}
 
 async function resolveTargetUri(uriFromContextMenu) {
   // Context menu invocation already gives us a URI — use it directly.
@@ -73,7 +128,18 @@ function activate(context) {
     },
   );
 
-  context.subscriptions.push(cmd);
+  const githubCmd = vscode.commands.registerCommand(
+    "openOnGitHub.run",
+    async (uriFromContextMenu) => {
+      try {
+        await openOnGitHub(uriFromContextMenu);
+      } catch (err) {
+        vscode.window.showErrorMessage(`Open on GitHub failed: ${err.message}`);
+      }
+    },
+  );
+
+  context.subscriptions.push(cmd, githubCmd);
 }
 
 function deactivate() {}

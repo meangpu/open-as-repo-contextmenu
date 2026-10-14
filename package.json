@@ -18,6 +18,10 @@
       {
         "command": "openAsGitRepo.run",
         "title": "Open as Git Repository"
+      },
+      {
+        "command": "openOnGitHub.run",
+        "title": "Open on GitHub"
       }
     ],
     "menus": {
@@ -26,6 +30,16 @@
           "command": "openAsGitRepo.run",
           "when": "explorerResourceIsFolder",
           "group": "navigation@1"
+        },
+        {
+          "command": "openOnGitHub.run",
+          "group": "navigation@2"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "openOnGitHub.run",
+          "group": "navigation@2"
         }
       ]
     },
