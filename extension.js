@@ -55,10 +55,49 @@ async function openOnGitHub(uriFromArg) {
   await vscode.env.openExternal(vscode.Uri.parse(url));
 }
 
+// Changed entries in every open repo that are folders (submodules).
+// One: use it. Several: ask. None: undefined.
+async function pickChangedSubmodule() {
+  const gitExt = vscode.extensions.getExtension("vscode.git");
+  if (!gitExt) {
+    return undefined;
+  }
+  const gitExports = gitExt.isActive ? gitExt.exports : await gitExt.activate();
+  const api = gitExports.getAPI(1);
+
+  const seen = new Set();
+  const folders = [];
+  for (const repo of api.repositories) {
+    for (const change of [...repo.state.indexChanges, ...repo.state.workingTreeChanges]) {
+      const uri = change.uri;
+      if (seen.has(uri.fsPath)) continue;
+      seen.add(uri.fsPath);
+      const stat = await vscode.workspace.fs.stat(uri).then((s) => s, () => undefined);
+      if (stat && stat.type & vscode.FileType.Directory) {
+        folders.push(uri);
+      }
+    }
+  }
+
+  if (folders.length <= 1) {
+    return folders[0];
+  }
+  const picked = await vscode.window.showQuickPick(
+    folders.map((uri) => ({ label: path.basename(uri.fsPath), description: uri.fsPath, uri })),
+    { placeHolder: "Changed submodule to open as a Git repository" },
+  );
+  return picked?.uri;
+}
+
 async function resolveTargetUri(uriFromContextMenu) {
   // Source Control list passes a resource state (e.g. a changed submodule), not a URI.
   if (uriFromContextMenu?.resourceUri) {
     return uriFromContextMenu.resourceUri;
+  }
+  // Keybinding in Source Control: VS Code passes no selection to keybindings
+  // there, so offer the changed submodules instead.
+  if (uriFromContextMenu?.fromScm) {
+    return pickChangedSubmodule();
   }
   // Context menu invocation already gives us a URI — use it directly.
   if (uriFromContextMenu) {

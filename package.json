@@ -55,6 +55,12 @@
         "command": "openAsGitRepo.run",
         "key": "alt+shift+e",
         "when": "filesExplorerFocus && !inputFocus"
+      },
+      {
+        "command": "openAsGitRepo.run",
+        "key": "alt+shift+e",
+        "when": "focusedView == workbench.scm && !inputFocus",
+        "args": { "fromScm": true }
       }
     ]
   }
