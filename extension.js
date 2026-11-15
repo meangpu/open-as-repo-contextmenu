@@ -56,6 +56,10 @@ async function openOnGitHub(uriFromArg) {
 }
 
 async function resolveTargetUri(uriFromContextMenu) {
+  // Source Control list passes a resource state (e.g. a changed submodule), not a URI.
+  if (uriFromContextMenu?.resourceUri) {
+    return uriFromContextMenu.resourceUri;
+  }
   // Context menu invocation already gives us a URI — use it directly.
   if (uriFromContextMenu) {
     return uriFromContextMenu;
@@ -89,6 +93,20 @@ function activate(context) {
       if (!uri) {
         vscode.window.showErrorMessage(
           "No file or folder is selected in the Explorer.",
+        );
+        return;
+      }
+
+      // A plain file (e.g. a changed file in Source Control) is not a repo root;
+      // without this the parent repo would be reported as "opened".
+      const stat = await vscode.workspace.fs.stat(uri).then(
+        (s) => s,
+        () => undefined,
+      );
+      // Bitwise: a symlinked folder is Directory | SymbolicLink.
+      if (!stat || !(stat.type & vscode.FileType.Directory)) {
+        vscode.window.showWarningMessage(
+          `Not a folder (pick a submodule or folder): ${uri.fsPath}`,
         );
         return;
       }

@@ -2,7 +2,7 @@
   "name": "open-as-git-repo",
   "displayName": "Open As Git Repository",
   "description": "Right-click a folder in Explorer to open it as a Git repository",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "meangpu",
   "icon": "icon/icon.png",
   "engines": {
@@ -34,6 +34,13 @@
         {
           "command": "openOnGitHub.run",
           "group": "navigation@2"
+        }
+      ],
+      "scm/resourceState/context": [
+        {
+          "command": "openAsGitRepo.run",
+          "when": "scmProvider == git",
+          "group": "navigation@9"
         }
       ],
       "editor/context": [
