@@ -14,7 +14,8 @@
   },
   "main": "./extension.js",
   "scripts": {
-    "release": "node -e \"require('fs').readdirSync('.').filter(f => f.endsWith('.vsix')).forEach(f => require('fs').unlinkSync(f))\" && vsce package patch"
+    "release": "node -e \"require('fs').readdirSync('.').filter(f => f.endsWith('.vsix')).forEach(f => require('fs').unlinkSync(f))\" && vsce package patch && npm run install-local",
+    "install-local": "node -e \"require('child_process').execSync('code --install-extension open-as-git-repo-' + require('./package.json').version + '.vsix --force', { stdio: 'inherit' })\""
   },
   "contributes": {
     "commands": [
