@@ -13,6 +13,9 @@
     "url": "https://github.com/meangpu/open-as-repo-contextmenu"
   },
   "main": "./extension.js",
+  "scripts": {
+    "release": "node -e \"require('fs').readdirSync('.').filter(f => f.endsWith('.vsix')).forEach(f => require('fs').unlinkSync(f))\" && vsce package patch"
+  },
   "contributes": {
     "commands": [
       {

@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "release: bump patch + package .vsix",
+      "detail": "Delete old .vsix files, then vsce package patch (bumps version, commits, tags, builds .vsix)",
+      "type": "shell",
+      "command": "npm run release",
+      "problemMatcher": []
+    }
+  ]
+}
